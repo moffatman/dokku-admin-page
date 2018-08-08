@@ -1,0 +1,56 @@
+html
+	head
+		title= title
+		link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css")
+	body
+		.container
+			.row
+				.col-8
+					h1= title
+				.col-4
+					button.btn.btn-primary(type="button", onclick="fetch('/start')") start
+			.row
+				.col
+					h5 Process started: 
+						time.timeago(datetime=started.toISOString())= started
+				.col
+					h5 Next run: 
+						time.timeago(datetime=nextTime.toISOString())= nextTime
+			.row
+				.col
+					table.table.table-sm
+						thead
+							tr
+								th Time
+								th Message
+						tbody(id="logbody")
+							each message in log
+								tr
+									td
+										time.timeago(datetime=message.time.toISOString())= message.time
+									td= message.message
+		script(src="/js/jquery.min.js")
+		script(src="/js/timeago.js")
+		script(src="/socket.io/socket.io.js")
+		script.
+			var socket = io()
+			var timeagoInstance = timeago()
+			socket.on('log', function(msg) {
+				var newRow = $(document.createElement('tr'))
+				var timeColumn = $(document.createElement('td'))
+				var timeElement = $(document.createElement('time'))
+				timeElement.attr('datetime', new Date(msg.time).toISOString())
+				timeElement.text(msg.time)
+				timeColumn.append(timeElement)
+				var messageColumn = $(document.createElement('td'))
+				messageColumn.text(msg.message)
+				newRow.append(timeColumn)
+				newRow.append(messageColumn)
+				//document.getElementById('logbody').innerHTML = `<tr><td>${msg.time}</td><td>${msg.message}</td></tr>` + document.getElementById('logbody').innerHTML
+				$('#logbody').prepend(newRow)
+				timeagoInstance.render(timeElement)
+				$('#logbody').children().slice(300).remove()
+			})
+			$(document).ready(function() {
+				timeagoInstance.render($('time.timeago'))
+			})
