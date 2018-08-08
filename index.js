@@ -17,8 +17,9 @@ class DokkuAdminPage {
 		this.app = express()
 		this.httpServer = http.Server(this.app)
 		this.io = IO(this.httpServer)
-		this.app.use(express.static('static'))
+		this.app.use(express.static(__dirname + '/static'))
 		this.app.set('view engine', 'pug')
+		this.app.set('views', __dirname + '/views')
 		this.app.get('/', function(request, response) {
 			response.render('index', {
 				title: self.title,
