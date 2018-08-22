@@ -4,18 +4,29 @@ html
 		link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css")
 	body
 		.container
+			br
 			.row
-				.col-8
-					h1= title
 				.col-4
-					button.btn.btn-primary(type="button", onclick="fetch('/start')") start
+					.row
+						h1= title
+				.col-4
+					.row
+						h5 Process started 
+							time.timeago(datetime=started.toISOString())= started
+				.col-4
+					each task in tasks
+						.row
+							.col-6
+								button.btn.btn-primary(type="button", onclick="fetch('/task?task=" + task.id + "')")= task.name
+							if task.schedule
+								.col-6
+									p(style="height: 38px; line-height: 38px; vertical-align: middle;") Next run 
+										time.timeago(datetime=task.schedule.nextInvocation().toISOString())= task.schedule.nextInvocation()
+			hr
 			.row
-				.col
-					h5 Process started: 
-						time.timeago(datetime=started.toISOString())= started
-				.col
-					h5 Next run: 
-						time.timeago(datetime=nextTime.toISOString())= nextTime
+				.col-12
+					.progress(style="height: 30px; font-size: 17px;")
+						.progress-bar(id="bar", role="progressbar", style=`width: ${status.progress * 100}%`)= status.message
 			.row
 				.col
 					table.table.table-sm
@@ -50,6 +61,10 @@ html
 				$('#logbody').prepend(newRow)
 				timeagoInstance.render(timeElement)
 				$('#logbody').children().slice(300).remove()
+			})
+			socket.on('status', function(status) {
+				$("#bar").css('width', (status.progress * 100) + '%')
+				$("#bar").text(status.message)
 			})
 			$(document).ready(function() {
 				timeagoInstance.render($('time.timeago'))

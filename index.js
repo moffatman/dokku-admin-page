@@ -4,16 +4,16 @@ var http = require('http')
 var IO = require('socket.io')
 
 class DokkuAdminPage {
-	constructor(title, taskFunction, dailyRunHour) {
+	constructor(title) {
 		const self = this
 		this.title = title
+		this.tasks = []
 		this.startTime = new Date()
-		this.task = schedule.scheduleJob({
-			hour: dailyRunHour + 4 + (this.startTime.getHours() - this.startTime.getUTCHours()), // deal with time zone
-			minute: 0
-		}, taskFunction)
-		this.taskFunction = taskFunction
 		this.log = []
+		this.status = {
+			progress: 100,
+			message: 'Loaded'
+		}
 		this.app = express()
 		this.httpServer = http.Server(this.app)
 		this.io = IO(this.httpServer)
@@ -24,12 +24,15 @@ class DokkuAdminPage {
 			response.render('index', {
 				title: self.title,
 				log: self.log,
-				nextTime: self.task.nextInvocation(),
-				started: self.startTime
+				tasks: self.tasks,
+				started: self.startTime,
+				status: self.status
 			})
 		})
-		this.app.get('/start', function(request, response) {
-			self.taskFunction()
+		this.app.get('/task', function(request, response) {
+			var task = self.tasks[request.query.task]
+			self.logger('Triggering task "' + task.name + '" manually');
+			task.f();
 			response.send('OK')
 		})
 		this.io.on('connection', function(socket) {
@@ -38,6 +41,20 @@ class DokkuAdminPage {
 				console.log('a user disconnected')
 			})
 		})
+	}
+	addTask(f, name, dailyRunHour) {
+		var task = {
+			f: f,
+			name: name,
+			id: this.tasks.length
+		}
+		if (dailyRunHour) {
+			task.schedule = schedule.scheduleJob({
+				hour: dailyRunHour + 4 + (this.startTime.getHours() - this.startTime.getUTCHours()), // deal with time zone
+				minute: 0
+			}, f)
+		}
+		this.tasks.push(task)
 	}
 	logger(data) {
 		var msg = {
@@ -48,6 +65,11 @@ class DokkuAdminPage {
 		this.io.emit('log', msg)
 		console.log(msg)
 		this.log = this.log.slice(0, 300)
+	}
+	setStatus(progress, message) {
+		this.status.progress = progress
+		this.status.message = message
+		this.io.emit('status', this.status)
 	}
 	start() {
 		var port = process.env.PORT ? process.env.PORT : 80
