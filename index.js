@@ -42,17 +42,21 @@ class DokkuAdminPage {
 			})
 		})
 	}
-	addTask(f, name, dailyRunHour) {
+	addTask(f, name, rule) {
 		var task = {
 			f: f,
 			name: name,
 			id: this.tasks.length
 		}
-		if (dailyRunHour) {
-			task.schedule = schedule.scheduleJob({
-				hour: dailyRunHour + 4 + (this.startTime.getHours() - this.startTime.getUTCHours()), // deal with time zone
-				minute: 0
-			}, f)
+		if (rule !== undefined) {
+			if (typeof rule !== 'object') {
+				// assume rule is hour
+				rule = {
+					hour: rule + 4 + (this.startTime.getHours() - this.startTime.getUTCHours()), // assume input time is Eastern, adjust for any server
+					minute: 0
+				}
+			}
+			task.schedule = schedule.scheduleJob(rule, f)
 		}
 		this.tasks.push(task)
 	}
