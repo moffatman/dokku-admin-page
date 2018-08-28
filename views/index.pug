@@ -26,7 +26,8 @@ html
 			.row
 				.col-12
 					.progress(style="height: 30px; font-size: 17px;")
-						.progress-bar(id="bar", role="progressbar", style=`width: ${status.progress * 100}%`)= status.message
+						each progress, index in status.progress
+							div(class="progress-bar " + status.classes[index] role="progressbar", style=`width: ${progress * 100}%`)= status.message
 			.row
 				.col
 					table.table.table-sm
@@ -46,6 +47,7 @@ html
 		script.
 			var socket = io()
 			var timeagoInstance = timeago()
+			var currentClasses = {}
 			socket.on('log', function(msg) {
 				var newRow = $(document.createElement('tr'))
 				var timeColumn = $(document.createElement('td'))
@@ -63,8 +65,17 @@ html
 				$('#logbody').children().slice(300).remove()
 			})
 			socket.on('status', function(status) {
-				$("#bar").css('width', (status.progress * 100) + '%')
-				$("#bar").text(status.message)
+				console.log(status)
+				status.progress.forEach(function (progress, index) {
+					var bar = $(".progress-bar").eq(index)
+					bar.css('width', (progress * 100) + '%')
+					bar.text(status.messages[index])
+					if (currentClasses[index] !== status.classes[index]) {
+						bar.attr('class', 'progress-bar')
+						bar.addClass(status.classes[index])
+						currentClasses[index] = status.classes[index]
+					}
+				})
 			})
 			$(document).ready(function() {
 				timeagoInstance.render($('time.timeago'))

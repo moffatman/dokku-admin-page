@@ -11,8 +11,9 @@ class DokkuAdminPage {
 		this.startTime = new Date()
 		this.log = []
 		this.status = {
-			progress: 100,
-			message: 'Loaded'
+			progress: [100],
+			classes: ['bg-success'],
+			messages: ['Loaded']
 		}
 		this.app = express()
 		this.httpServer = http.Server(this.app)
@@ -71,9 +72,23 @@ class DokkuAdminPage {
 		this.log = this.log.slice(0, 300)
 	}
 	setStatus(progress, message) {
-		this.status.progress = progress
-		this.status.message = message
+		if (progress[0]) {
+			// progress is an array
+			this.status.progress = progress
+		}
+		else {
+			this.status.progress = [progress]
+		}
+		if (typeof message === 'string') {
+			this.status.messages[0] = message
+		}
+		else {
+			this.status.messages = message
+		}
 		this.io.emit('status', this.status)
+	}
+	setStatusClasses(classes) {
+		this.status.classes = classes
 	}
 	start() {
 		var port = process.env.PORT ? process.env.PORT : 80
