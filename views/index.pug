@@ -2,6 +2,7 @@ html
 	head
 		title= title
 		link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css")
+		link(rel="shortcut icon", href="/favicon.ico?v=1", type="image/x-icon")
 	body
 		.container
 			br
@@ -53,6 +54,7 @@ html
 				var timeColumn = $(document.createElement('td'))
 				var timeElement = $(document.createElement('time'))
 				timeElement.attr('datetime', new Date(msg.time).toISOString())
+				timeElement.attr('title', new Date(msg.time).toLocaleString())
 				timeElement.text(msg.time)
 				timeColumn.append(timeElement)
 				var messageColumn = $(document.createElement('td'))
@@ -65,7 +67,6 @@ html
 				$('#logbody').children().slice(300).remove()
 			})
 			socket.on('status', function(status) {
-				console.log(status)
 				status.progress.forEach(function (progress, index) {
 					var bar = $(".progress-bar").eq(index)
 					bar.css('width', (progress * 100) + '%')
