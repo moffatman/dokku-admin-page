@@ -1,5 +1,6 @@
 var schedule = require('node-schedule')
 var express = require('express')
+var moment = require('moment-timezone')
 var http = require('http')
 var IO = require('socket.io')
 
@@ -53,7 +54,7 @@ class DokkuAdminPage {
 			if (typeof rule !== 'object') {
 				// assume rule is hour
 				rule = {
-					hour: rule + 4 + (this.startTime.getHours() - this.startTime.getUTCHours()), // assume input time is Eastern, adjust for any server
+					hour: rule + Math.round(moment.tz.zone('Canada/Eastern').utcOffset(this.startTime.getTime()) / 60) + (this.startTime.getHours() - this.startTime.getUTCHours()), // assume input time is Eastern, adjust for any server
 					minute: 0
 				}
 			}

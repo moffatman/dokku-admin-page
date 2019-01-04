@@ -9,5 +9,5 @@ app.addTask(function() {
 app.addTask(function() {
 	app.setStatusClasses(['bg-info', 'bg-warning'])
 	app.setStatus([Math.random(), Math.random()], (Math.random() * 100) + '/100')
-}, '2')
+}, '2', 11)
 app.start()
